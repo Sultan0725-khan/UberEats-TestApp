@@ -90,13 +90,14 @@ export const Dashboard = () => {
             Use the <strong className="text-white">Orders API</strong> to fetch
             active orders or simulate them via Postman or the Uber App.
           </li>
-          <li>
+          <li className="flex items-start">
+            <span className="text-primary mr-3">•</span>
             Set up <strong className="text-white">Cloudflare</strong> to forward
-            webhooks to{" "}
+            webhooks to your tunnel's{" "}
             <code className="bg-surfaceHover px-1.5 py-0.5 rounded text-white">
-              http://localhost:3000/webhooks/uber-eats
+              /webhooks/uber-eats
             </code>{" "}
-            and view them live.
+            path and view them live.
           </li>
         </ol>
       </div>

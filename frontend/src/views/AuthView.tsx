@@ -16,7 +16,12 @@ const AVAILABLE_SCOPES = [
   { id: "eats.pos_provisioning", label: "POS Provisioning" },
 ];
 
-const DEFAULT_SCOPES = ["eats.order", "eats.store", "eats.store.orders.read"];
+const DEFAULT_SCOPES = [
+  "eats.order",
+  "eats.store",
+  "eats.store.orders.read",
+  "eats.store.status.write",
+];
 
 export const AuthView = () => {
   const [selectedScopes, setSelectedScopes] =

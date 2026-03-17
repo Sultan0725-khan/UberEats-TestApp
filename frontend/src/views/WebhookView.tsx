@@ -85,10 +85,12 @@ export const WebhookView = () => {
               No webhooks received yet
             </p>
             <p className="text-sm">
-              Configure ngrok to point to{" "}
+              Configure Webhook URL in Uber Dashboard to point to your
+              Cloudflare tunnel's{" "}
               <code className="bg-surfaceHover px-2 py-1 rounded">
-                http://localhost:3000/webhooks/uber-eats
-              </code>
+                /webhooks/uber-eats
+              </code>{" "}
+              path
             </p>
           </div>
         ) : (

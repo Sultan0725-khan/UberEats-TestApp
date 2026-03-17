@@ -11,14 +11,18 @@ const processedEventIds = new Set<string>();
 router.post("/uber-eats", (req, res) => {
   try {
     const signatureHeader = req.headers["x-uber-signature"] as string;
+    const contentType = req.headers["content-type"];
     const webhookSecret =
-      process.env.UBER_WEBHOOK_SECRET || process.env.UBER_CLIENT_SECRET;
+      process.env.UBER_WEBHOOK_SIGNING_KEY || process.env.UBER_CLIENT_SECRET;
+
+    console.log(
+      `[Webhook] Incoming request. Content-Type: ${contentType}, Signature: ${signatureHeader}, Body Length: ${req.body?.length || 0}`,
+    );
 
     if (!webhookSecret) {
       console.warn("Webhook secret not configured, skipping validation");
-    } else if (signatureHeader && req.body) {
+    } else if (signatureHeader && req.body && req.body.length > 0) {
       // Validate signature
-      // req.body here MUST be the raw Buffer if express.raw() is used
       const expectedSignature = crypto
         .createHmac("sha256", webhookSecret)
         .update(req.body)
@@ -28,7 +32,6 @@ router.post("/uber-eats", (req, res) => {
         console.error(
           `Invalid Webhook Signature. Expected: ${expectedSignature}, Got: ${signatureHeader}`,
         );
-        // Uber expects a 200 even on errors sometimes, or 401. Let's return 401 for safety.
         return res.status(401).send("Invalid signature");
       }
     }
@@ -41,6 +44,16 @@ router.post("/uber-eats", (req, res) => {
       return res.status(400).send("Invalid JSON");
     }
 
+    // Extract order_id if it's an orders.notification
+    let orderId;
+    if (eventData.event_type === "orders.notification") {
+      // Typically Uber sends it in meta.resource_id or as part of resource_href
+      orderId =
+        eventData.meta?.resource_id ||
+        eventData.resource_href?.split("/").pop() ||
+        "Unknown Order ID";
+    }
+
     const eventId = eventData.event_id || `local_evt_${Date.now()}`;
 
     // Deduplicate
@@ -49,6 +62,7 @@ router.post("/uber-eats", (req, res) => {
 
       const enrichedEvent = {
         ...eventData,
+        order_id: orderId,
         _received_at: new Date().toISOString(),
       };
 
@@ -61,14 +75,17 @@ router.post("/uber-eats", (req, res) => {
       }
 
       console.log(
-        `[Webhook] Received ${eventData.event_type} - Event ID: ${eventId}`,
+        `[Webhook] Received ${eventData.event_type} - Event ID: ${eventId}, Order ID: ${orderId}`,
       );
+      if (eventData.event_type === "orders.notification") {
+        console.log("[Webhook] Full Body:", JSON.stringify(eventData, null, 2));
+      }
     } else {
       console.log(`[Webhook] Duplicate event ignored - Event ID: ${eventId}`);
     }
 
-    // Acknowledge receipt
-    res.status(200).send("OK");
+    // Acknowledge receipt - Uber docs say empty body
+    res.status(200).send();
   } catch (error) {
     console.error("Webhook processing error:", error);
     res.status(500).send("Internal Server Error");

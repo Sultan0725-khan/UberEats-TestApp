@@ -1,16 +1,32 @@
 import React, { useState } from "react";
+import { RefreshCw, MapPin, Clock, ArrowRight } from "lucide-react";
 import { EndpointPanel } from "../components/EndpointPanel";
 import api from "../lib/api";
+import { UberOrder } from "../types/uber";
+import { cn } from "../components/Sidebar";
 
 export const OrdersView = () => {
   const [storeId, setStoreId] = useState(
     "e269b9b3-e859-47b5-a9da-d82ce41139be",
   );
-  const [orderId, setOrderId] = useState("5d816729-534e-4e..."); // Placeholder
+  const [orderId, setOrderId] = useState("");
+  const [fetchedOrders, setFetchedOrders] = useState<UberOrder[]>([]);
 
   const [defaultPickupTime] = useState(
     () => Math.floor(Date.now() / 1000) + 1800,
   );
+
+  const handleCreatedOrdersResponse = (res: any) => {
+    if (res.data && res.data.orders) {
+      setFetchedOrders(res.data.orders);
+    }
+    return res;
+  };
+
+  const handleQuickAction = (id: string, targetY: number) => {
+    setOrderId(id);
+    window.scrollTo({ top: targetY, behavior: "smooth" });
+  };
 
   return (
     <div className="space-y-6">
@@ -50,6 +66,84 @@ export const OrdersView = () => {
         </div>
       </div>
 
+      {/* Orders Dashboard */}
+      <div className="bg-surface border border-border rounded-xl p-6 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <RefreshCw className="w-5 h-5 text-primary" />
+            Recently Fetched Orders
+          </h2>
+          <span className="text-xs text-textMuted bg-surfaceHover px-2 py-1 rounded border border-border capitalize">
+            {fetchedOrders.length}{" "}
+            {fetchedOrders.length === 1 ? "Order" : "Orders"} Found
+          </span>
+        </div>
+
+        {fetchedOrders.length === 0 ? (
+          <div className="text-center py-10 border border-dashed border-border rounded-lg bg-[#1e1e1e]/30">
+            <p className="text-textMuted text-sm">
+              No orders fetched yet. Execute "Get Active Created Orders" below
+              to populate this list.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {fetchedOrders.map((order) => (
+              <div
+                key={order.id}
+                className={cn(
+                  "p-4 rounded-xl border border-border bg-[#1e1e1e] hover:border-primary transition-all group",
+                  orderId === order.id && "ring-1 ring-primary border-primary",
+                )}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-textMuted uppercase font-bold tracking-wider mb-1">
+                      Order ID
+                    </span>
+                    <span className="text-sm font-mono text-primary truncate max-w-[140px]">
+                      {order.id}
+                    </span>
+                  </div>
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded text-[10px] font-bold border uppercase",
+                      order.current_state === "CREATED"
+                        ? "bg-green-500/10 text-green-400 border-green-500/20"
+                        : "bg-primary/10 text-primary border-primary/20",
+                    )}
+                  >
+                    {order.current_state}
+                  </span>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center gap-2 text-xs text-textMuted">
+                    <Clock className="w-3.5 h-3.5" />
+                    {new Date(order.placed_at).toLocaleString()}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-border/50">
+                  <button
+                    onClick={() => handleQuickAction(order.id, 650)}
+                    className="flex items-center justify-center gap-1 py-1.5 bg-surfaceHover hover:bg-primary/10 hover:text-primary rounded text-[10px] font-medium transition-colors"
+                  >
+                    Details
+                  </button>
+                  <button
+                    onClick={() => handleQuickAction(order.id, 900)}
+                    className="flex items-center justify-center gap-1 py-1.5 bg-surfaceHover hover:bg-green-500/10 hover:text-green-400 rounded text-[10px] font-medium transition-colors"
+                  >
+                    Accept
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="space-y-8">
         <EndpointPanel
           title="Get Active Created Orders"
@@ -60,6 +154,7 @@ export const OrdersView = () => {
           onExecute={() =>
             api
               .get(`/api/uber/stores/${storeId}/created-orders`)
+              .then(handleCreatedOrdersResponse)
               .then((res) => res.data)
           }
         >
@@ -91,7 +186,7 @@ export const OrdersView = () => {
           title="Accept Order"
           description="Acknowledge receipt of a new order from a store's POS."
           method="POST"
-          displayEndpoint="{{base_url}}/v1/eats/order/${orderId}/accept_pos_order"
+          displayEndpoint="{{base_url}}/v1/eats/orders/${orderId}/accept_pos_order"
           endpoint={`/api/uber/orders/${orderId}/accept_pos_order`}
           defaultBody={{
             reason: "Accepted in Sandbox UI",
@@ -129,7 +224,7 @@ export const OrdersView = () => {
           title="Deny Order"
           description="Deny a newly created pos order if it cannot be fulfilled."
           method="POST"
-          displayEndpoint="{{base_url}}/v1/eats/order/${orderId}/deny_pos_order"
+          displayEndpoint="{{base_url}}/v1/eats/orders/${orderId}/deny_pos_order"
           endpoint={`/api/uber/orders/${orderId}/deny`}
           defaultBody={{ explanation: "Item out of stock" }}
           onExecute={(body) =>
@@ -160,9 +255,9 @@ export const OrdersView = () => {
           title="Cancel Order"
           description="Cancel an already accepted order."
           method="POST"
-          displayEndpoint="{{base_url}}/v1/eats/order/${orderId}/cancel"
+          displayEndpoint="{{base_url}}/v1/eats/orders/${orderId}/cancel"
           endpoint={`/api/uber/orders/${orderId}/cancel`}
-          defaultBody={{ reason: "Order delayed" }}
+          defaultBody={{ reason: "KITCHEN_CLOSED" }}
           onExecute={(body) =>
             api
               .post(`/api/uber/orders/${orderId}/cancel`, body)
@@ -180,7 +275,11 @@ export const OrdersView = () => {
               <ul className="list-disc list-inside space-y-1 opacity-80">
                 <li>
                   <strong>reason:</strong> (Required) Detailed reason for
-                  cancellation.
+                  cancellation. Valid values: <br />
+                  <code className="text-secondary text-[10px]">
+                    OUT_OF_ITEMS, KITCHEN_CLOSED, CUSTOMER_CALLED_TO_CANCEL,
+                    RESTAURANT_TOO_BUSY, CANNOT_COMPLETE_CUSTOMER_NOTE, OTHER
+                  </code>
                 </li>
               </ul>
             </div>

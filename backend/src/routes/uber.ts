@@ -155,12 +155,12 @@ router.get("/stores/:store_id/menus", (req, res) => {
   proxyRequest(req, res, "GET", `/v2/eats/stores/${req.params.store_id}/menus`);
 });
 
-router.post("/stores/:store_id/menus", (req, res) => {
+router.put("/stores/:store_id/menus", (req, res) => {
   // Upload menu
   proxyRequest(
     req,
     res,
-    "POST",
+    "PUT",
     `/v2/eats/stores/${req.params.store_id}/menus`,
     req.body,
   );
@@ -196,7 +196,7 @@ router.post("/orders/:order_id/accept_pos_order", (req, res) => {
     req,
     res,
     "POST",
-    `/v1/eats/order/${req.params.order_id}/accept_pos_order`,
+    `/v1/eats/orders/${req.params.order_id}/accept_pos_order`,
     req.body,
   );
 });
@@ -206,7 +206,7 @@ router.post("/orders/:order_id/cancel", (req, res) => {
     req,
     res,
     "POST",
-    `/v1/eats/order/${req.params.order_id}/cancel`,
+    `/v1/eats/orders/${req.params.order_id}/cancel`,
     req.body,
   );
 });
@@ -216,7 +216,7 @@ router.post("/orders/:order_id/deny", (req, res) => {
     req,
     res,
     "POST",
-    `/v1/eats/order/${req.params.order_id}/deny_pos_order`,
+    `/v1/eats/orders/${req.params.order_id}/deny_pos_order`,
     req.body,
   );
 });
