@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { RefreshCw, MapPin, Clock, ArrowRight } from "lucide-react";
 import { EndpointPanel } from "../components/EndpointPanel";
 import api from "../lib/api";
-import { UberOrder } from "../types/uber";
+import type { UberOrder } from "../types/uber";
 import { cn } from "../components/Sidebar";
 
 export const OrdersView = () => {
