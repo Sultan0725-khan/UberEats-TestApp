@@ -16,6 +16,10 @@ export const OrdersView = () => {
     () => Math.floor(Date.now() / 1000) + 1800,
   );
 
+  const [defaultReadyTime] = useState(() =>
+    new Date(Date.now() + 1800000).toISOString(),
+  );
+
   const handleCreatedOrdersResponse = (res: any) => {
     if (res.data && res.data.orders) {
       setFetchedOrders(res.data.orders);
@@ -221,15 +225,15 @@ export const OrdersView = () => {
         </EndpointPanel>
 
         <EndpointPanel
-          title="Deny Order"
-          description="Deny a newly created pos order if it cannot be fulfilled."
+          title="Order Ready"
+          description="Set the order as ready for pickup. Also known as Update Delivery Status."
           method="POST"
-          displayEndpoint="{{base_url}}/v1/eats/orders/${orderId}/deny_pos_order"
-          endpoint={`/api/uber/orders/${orderId}/deny`}
-          defaultBody={{ explanation: "Item out of stock" }}
+          displayEndpoint="{{base_url}}/v1/delivery/order/${orderId}/ready"
+          endpoint={`/api/uber/orders/${orderId}/ready`}
+          defaultBody={{ status: "READY_FOR_PICKUP" }}
           onExecute={(body) =>
             api
-              .post(`/api/uber/orders/${orderId}/deny`, body)
+              .post(`/api/uber/orders/${orderId}/ready`, body)
               .then((res) => res.data)
           }
         >
@@ -237,14 +241,49 @@ export const OrdersView = () => {
             <div className="bg-surfaceHover/50 border border-border rounded-lg p-3 text-xs">
               <span className="text-primary font-semibold">Scope:</span> OAuth
               2.0 Bearer token with the{" "}
+              <code className="text-secondary">eats.store</code> or{" "}
               <code className="text-secondary">eats.order</code> scope.
             </div>
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-xs text-blue-200">
               <p className="font-semibold mb-1">Request Body Parameters:</p>
               <ul className="list-disc list-inside space-y-1 opacity-80">
                 <li>
-                  <strong>explanation:</strong> (Required) Reason for denying
-                  the order.
+                  <strong>status:</strong> (Required) Use{" "}
+                  <code className="text-white">READY_FOR_PICKUP</code> to notify
+                  courier.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </EndpointPanel>
+
+        <EndpointPanel
+          title="Update Ready Time"
+          description="Update the ready time for the order."
+          method="POST"
+          displayEndpoint="{{base_url}}/v1/delivery/order/${orderId}/update-ready-time"
+          endpoint={`/api/uber/orders/${orderId}/update-ready-time`}
+          defaultBody={{ ready_for_pickup_time: defaultReadyTime }}
+          onExecute={(body) =>
+            api
+              .post(`/api/uber/orders/${orderId}/update-ready-time`, body)
+              .then((res) => res.data)
+          }
+        >
+          <div className="space-y-4">
+            <div className="bg-surfaceHover/50 border border-border rounded-lg p-3 text-xs">
+              <span className="text-primary font-semibold">Scope:</span> OAuth
+              2.0 Bearer token with the{" "}
+              <code className="text-secondary">eats.store</code> or{" "}
+              <code className="text-secondary">eats.order</code> scope.
+            </div>
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-xs text-blue-200">
+              <p className="font-semibold mb-1">Request Body Parameters:</p>
+              <ul className="list-disc list-inside space-y-1 opacity-80">
+                <li>
+                  <strong>ready_for_pickup_time:</strong> (Required) The
+                  expected time when the order will be ready, in ISO-8601 string
+                  format.
                 </li>
               </ul>
             </div>
@@ -287,15 +326,15 @@ export const OrdersView = () => {
         </EndpointPanel>
 
         <EndpointPanel
-          title="Order Ready"
-          description="Set the order as ready for pickup. Also known as Update Delivery Status."
+          title="Deny Order"
+          description="Deny a newly created pos order if it cannot be fulfilled."
           method="POST"
-          displayEndpoint="{{base_url}}/v1/eats/orders/${orderId}/restaurant_delivery_status"
-          endpoint={`/api/uber/orders/${orderId}/ready`}
-          defaultBody={{ status: "READY_FOR_PICKUP" }}
+          displayEndpoint="{{base_url}}/v1/eats/orders/${orderId}/deny_pos_order"
+          endpoint={`/api/uber/orders/${orderId}/deny`}
+          defaultBody={{ explanation: "Item out of stock" }}
           onExecute={(body) =>
             api
-              .post(`/api/uber/orders/${orderId}/ready`, body)
+              .post(`/api/uber/orders/${orderId}/deny`, body)
               .then((res) => res.data)
           }
         >
@@ -303,16 +342,14 @@ export const OrdersView = () => {
             <div className="bg-surfaceHover/50 border border-border rounded-lg p-3 text-xs">
               <span className="text-primary font-semibold">Scope:</span> OAuth
               2.0 Bearer token with the{" "}
-              <code className="text-secondary">eats.store</code> or{" "}
               <code className="text-secondary">eats.order</code> scope.
             </div>
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-xs text-blue-200">
               <p className="font-semibold mb-1">Request Body Parameters:</p>
               <ul className="list-disc list-inside space-y-1 opacity-80">
                 <li>
-                  <strong>status:</strong> (Required) Use{" "}
-                  <code className="text-white">READY_FOR_PICKUP</code> to notify
-                  courier.
+                  <strong>explanation:</strong> (Required) Reason for denying
+                  the order.
                 </li>
               </ul>
             </div>

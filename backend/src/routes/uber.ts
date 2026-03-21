@@ -269,7 +269,18 @@ router.post("/orders/:order_id/ready", (req, res) => {
     req,
     res,
     "POST",
-    `/v1/eats/orders/${req.params.order_id}/restaurant_delivery_status`,
+    `/v1/delivery/order/${req.params.order_id}/ready`,
+    req.body,
+  );
+});
+
+router.post("/orders/:order_id/update-ready-time", (req, res) => {
+  // Update Order Ready Time
+  proxyRequest(
+    req,
+    res,
+    "POST",
+    `/v1/delivery/order/${req.params.order_id}/update-ready-time`,
     req.body,
   );
 });

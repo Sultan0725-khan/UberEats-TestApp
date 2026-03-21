@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { RefreshCw, Trash2, Webhook } from "lucide-react";
+import { Eye, RefreshCw, ShoppingCart, Trash2, Webhook, Clock } from "lucide-react";
 import api from "../lib/api";
 import { cn } from "../components/Sidebar";
 
@@ -7,6 +7,9 @@ export const WebhookView = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [orderDetails, setOrderDetails] = useState<Record<string, any>>({});
+  const [fetchingOrder, setFetchingOrder] = useState<Record<string, boolean>>({});
+  const [orderErrors, setOrderErrors] = useState<Record<string, string>>({});
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -20,10 +23,28 @@ export const WebhookView = () => {
     }
   };
 
+  const fetchOrderDetails = async (orderId: string, eventId: string) => {
+    setFetchingOrder((prev) => ({ ...prev, [eventId]: true }));
+    setOrderErrors((prev) => ({ ...prev, [eventId]: "" }));
+    try {
+      const res = await api.get(`/api/uber/orders/${orderId}`);
+      if (!res.data || !res.data.data) {
+          throw new Error("Invalid response from proxy");
+      }
+      setOrderDetails((prev) => ({ ...prev, [eventId]: res.data.data }));
+    } catch (e: any) {
+      console.error("Failed to fetch order details:", e);
+      setOrderErrors((prev) => ({ ...prev, [eventId]: e.response?.data?.error?.message || e.response?.data?.error || e.message || "Unknown error" }));
+    } finally {
+      setFetchingOrder((prev) => ({ ...prev, [eventId]: false }));
+    }
+  };
+
   const clearEvents = async () => {
     try {
       await api.delete("/api/webhooks/events");
       setEvents([]);
+      setOrderDetails({});
     } catch (e) {
       console.error(e);
     }
@@ -31,7 +52,7 @@ export const WebhookView = () => {
 
   useEffect(() => {
     fetchEvents();
-    let interval: NodeJS.Timeout;
+    let interval: any;
     if (autoRefresh) {
       interval = setInterval(fetchEvents, 3000);
     }
@@ -86,7 +107,7 @@ export const WebhookView = () => {
             </p>
             <p className="text-sm">
               Configure Webhook URL in Uber Dashboard to point to your
-              Cloudflare tunnel's{" "}
+              ngrok tunnel's{" "}
               <code className="bg-surfaceHover px-2 py-1 rounded">
                 /webhooks
               </code>{" "}
@@ -96,11 +117,15 @@ export const WebhookView = () => {
         ) : (
           <div className="divide-y divide-border">
             {events.map((evt, idx) => {
-              const date = new Date(evt._received_at);
+              const date = new Date(evt._received_at || evt.event_time);
               const isOrder = evt.event_type === "orders.notification";
+              const orderId = evt.meta?.resource_id || evt.resource_href?.split("/").pop();
+              const details = orderDetails[evt.event_id];
+              const isFetching = fetchingOrder[evt.event_id];
+
               return (
                 <div
-                  key={idx}
+                  key={evt.event_id || idx}
                   className="p-4 hover:bg-surfaceHover/50 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -119,13 +144,78 @@ export const WebhookView = () => {
                         ID: {evt.event_id}
                       </span>
                     </div>
-                    <span className="text-xs text-textMuted">
+                    <span className="text-xs text-textMuted flex items-center gap-1.5">
+                      <Clock className="w-3 h-3" />
                       {date.toLocaleTimeString()} - {date.toLocaleDateString()}
                     </span>
                   </div>
-                  <pre className="mt-2 text-xs font-mono text-gray-300 bg-[#1e1e1e] p-4 rounded border border-border overflow-x-auto">
-                    {JSON.stringify(evt.meta || evt, null, 2)}
-                  </pre>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <div className="space-y-3">
+                      <pre className="text-[10px] font-mono text-gray-400 bg-[#161616] p-3 rounded border border-border overflow-x-auto max-h-48">
+                        {JSON.stringify(evt.meta || evt, null, 2)}
+                      </pre>
+                      
+                      {isOrder && orderId && !details && (
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => fetchOrderDetails(orderId, evt.event_id)}
+                            disabled={isFetching}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 border border-orange-500/20 rounded-md text-xs font-semibold transition-colors disabled:opacity-50 w-fit"
+                          >
+                            {isFetching ? (
+                              <RefreshCw className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Eye className="w-3 h-3" />
+                            )}
+                            Get Order Details ({orderId.slice(0, 8)}...)
+                          </button>
+                          {orderErrors[evt.event_id] && (
+                            <div className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 p-2 rounded-md">
+                              Error: {typeof orderErrors[evt.event_id] === "string" ? orderErrors[evt.event_id] : JSON.stringify(orderErrors[evt.event_id])}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {details && (
+                      <div className="bg-surfaceHover/30 border border-primary/20 rounded-lg p-4 space-y-4">
+                        <div className="flex items-center justify-between border-b border-border pb-2">
+                          <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                            <ShoppingCart className="w-4 h-4 text-primary" />
+                            {details.store?.name || "Order Details"}
+                          </h4>
+                          <span className="text-[10px] text-textMuted bg-surface px-1.5 py-0.5 rounded border border-border">
+                            {details.display_id}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-[10px] uppercase tracking-wider text-textMuted font-bold">Items</p>
+                          <div className="space-y-1.5">
+                            {details.cart?.items?.map((item: any, i: number) => (
+                              <div key={i} className="flex items-center justify-between text-xs">
+                                <span className="text-gray-300">
+                                  {item.quantity}x {item.title || item.name}
+                                </span>
+                                <span className="text-white font-medium">
+                                  {item.price?.total_price?.formatted_amount || item.price?.formatted_amount || "N/A"}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-border flex items-center justify-between text-[11px]">
+                          <span className="text-textMuted">Placed At:</span>
+                          <span className="text-white font-mono">
+                            {new Date(details.placed_at || details.placed_at_utc).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
