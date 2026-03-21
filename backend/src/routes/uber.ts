@@ -68,6 +68,31 @@ router.post("/auth/token", async (req, res) => {
   }
 });
 
+// Auto-fetch token helper
+const autoFetchToken = async () => {
+  const authUrl =
+    process.env.UBER_AUTH_URL ||
+    "https://sandbox-login.uber.com/oauth/v2/token";
+  const params = new URLSearchParams();
+  params.append("client_id", process.env.UBER_CLIENT_ID || "");
+  params.append("client_secret", process.env.UBER_CLIENT_SECRET || "");
+  params.append("grant_type", "client_credentials");
+  params.append(
+    "scope",
+    "eats.order eats.store eats.store.orders.read eats.store.status.write",
+  );
+
+  const response = await axios.post(authUrl, params, {
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  });
+
+  currentToken = {
+    ...response.data,
+    obtained_at: Date.now(),
+  };
+  console.log("✅ Auto-fetched new Uber API token");
+};
+
 // Helper for proxying requests to Uber API and calculating latency/status
 const proxyRequest = async (
   req: any,
@@ -79,6 +104,23 @@ const proxyRequest = async (
   const startTime = Date.now();
   // Allow frontend to override base URL via header
   const baseUrl = req.headers["x-uber-base-url"] || getBaseUrl();
+
+  // Check if token is missing or expired (with 60s buffer)
+  const isExpired =
+    !currentToken.access_token ||
+    Date.now() - currentToken.obtained_at >
+      ((currentToken.expires_in || 2592000) - 60) * 1000;
+
+  if (isExpired) {
+    try {
+      await autoFetchToken();
+    } catch (tokenErr: any) {
+      console.error(
+        "❌ Failed to auto-fetch token:",
+        tokenErr.response?.data || tokenErr.message,
+      );
+    }
+  }
 
   try {
     const response = await uberApi({

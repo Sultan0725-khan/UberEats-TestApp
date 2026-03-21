@@ -33,6 +33,7 @@ app.use((req, _res, next) => {
 app.use("/api/uber", uberRoutes);
 app.use("/api/webhooks", webhookRoutes);
 app.use("/webhooks", webhookRoutes);
+app.use("/", webhookRoutes);
 
 // -------------------- DEBUG ENDPOINT --------------------
 app.get("/api/webhooks/self-test", (req, res) => {

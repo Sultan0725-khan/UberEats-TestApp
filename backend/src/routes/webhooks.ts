@@ -51,7 +51,7 @@ const VALID_EVENT_TYPES = new Set([
 ]);
 
 const isValidUUID = (id: string) =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{4}-[89ab][0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     id,
   );
 
@@ -83,16 +83,19 @@ const computeSignature = (
     .digest("hex");
 };
 
-const getUberSignature = (headers: Record<string, any>): string | undefined => {
-  const header = headers["x-uber-signature"] || headers["X-Uber-Signature"];
+const getUberSignatures = (headers: Record<string, any>): string[] => {
+  const sigs: string[] = [];
+  const keys = ["x-uber-signature", "x-uber-signature-new"];
 
-  if (header) return header;
+  for (const k of keys) {
+    const val = headers[k];
+    if (val) {
+      if (Array.isArray(val)) sigs.push(...val);
+      else sigs.push(val as string);
+    }
+  }
 
-  const key = Object.keys(headers).find(
-    (k) => k.toLowerCase() === "x-uber-signature",
-  );
-
-  return key ? headers[key] : undefined;
+  return sigs;
 };
 
 const validateSignature = (
@@ -145,9 +148,9 @@ const validateEvent = (event: UberWebhookEvent) => {
 
 /* -------------------- ROUTE -------------------- */
 
-router.post("/uber-eats", async (req: any, res) => {
+router.post(["/"], async (req: any, res) => {
   const rawBody = req.rawBody as Buffer;
-  const signatureHeader = getUberSignature(req.headers);
+  const signatures = getUberSignatures(req.headers);
 
   const webhookSecret =
     process.env.UBER_WEBHOOK_SIGNING_KEY ||
@@ -158,7 +161,7 @@ router.post("/uber-eats", async (req: any, res) => {
   debugLog("Incoming request", {
     path: req.originalUrl,
     bodyLength: rawBody?.length || 0,
-    signature: signatureHeader || "<missing>",
+    sigsFound: signatures.length,
   });
 
   console.log("HEADERS:", req.headers);
@@ -169,12 +172,26 @@ router.post("/uber-eats", async (req: any, res) => {
   }
 
   /* 🔐 SIGNATURE CHECK */
-  const sig = validateSignature(rawBody, signatureHeader, webhookSecret);
+  let sigValidation = { valid: false, reason: "missing-signature" };
+  let usedSignature = "";
 
-  if (!sig.valid) {
+  if (signatures.length > 0) {
+    for (const sig of signatures) {
+      const result = validateSignature(rawBody, sig, webhookSecret);
+      if (result.valid) {
+        sigValidation = result;
+        usedSignature = sig;
+        break;
+      } else {
+        sigValidation = result; // Preserve failure reason
+      }
+    }
+  }
+
+  if (!sigValidation.valid) {
     debugLog("Signature validation failed", {
-      reason: sig.reason,
-      received: signatureHeader,
+      reason: sigValidation.reason,
+      signaturesFound: signatures,
     });
 
     console.log("RAW BODY:", rawBody.toString("utf8"));
@@ -183,7 +200,7 @@ router.post("/uber-eats", async (req: any, res) => {
     return res.status(401).send("Invalid signature");
   }
 
-  debugLog("Signature validation OK");
+  debugLog("Signature validation OK", { usedSignature });
 
   /* 📦 PARSE */
   let event: UberWebhookEvent;
