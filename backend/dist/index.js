@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use((0, cors_1.default)());
 // Use raw body parsing for the webhook route to verify signatures
-app.use("/webhooks/uber-eats", express_1.default.raw({ type: "application/json" }));
+app.use("/webhooks", express_1.default.raw({ type: "application/json" }));
 app.use(express_1.default.json());
 // Routes
 app.use("/api/uber", uber_1.default);

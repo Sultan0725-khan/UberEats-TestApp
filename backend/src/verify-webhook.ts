@@ -6,7 +6,7 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_SECRET = process.env.UBER_WEBHOOK_SECRET || "sqZ1h8Xo4qo8WSTmEJO2h19gVF7eBpifK7xy2vN8";
-const API_URL = `http://localhost:${PORT}/webhooks/uber-eats`;
+const API_URL = `http://localhost:${PORT}/webhooks`;
 
 const testEvent = {
   event_id: "8ee72f37-37f5-412f-ba0f-0a0da549978e",

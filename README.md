@@ -70,7 +70,7 @@ To receive webhooks on your local machine, Uber's servers need a public URL to s
    ```
 3. Copy the generated `https://something.trycloudflare.com` URL.
 4. Go to your Uber Developer Dashboard -> Settings -> Webhooks.
-5. Set the Webhook URL to: `https://something.trycloudflare.com/webhooks/uber-eats`
+5. Set the Webhook URL to: `https://something.trycloudflare.com/webhooks`
 
 ### Using ngrok
 
@@ -80,7 +80,7 @@ To receive webhooks on your local machine, Uber's servers need a public URL to s
    ngrok http 3000
    ```
 3. Copy the `https://xxxx-xx.ngrok.app` URL.
-4. Configure your Uber Dashboard Webhook URL to: `https://xxxx-xx.ngrok.app/webhooks/uber-eats`
+4. Configure your Uber Dashboard Webhook URL to: `https://xxxx-xx.ngrok.app/webhooks`
 
 ## Architecture
 

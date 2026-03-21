@@ -95,7 +95,7 @@ export const Dashboard = () => {
             Set up <strong className="text-white">Cloudflare</strong> to forward
             webhooks to your tunnel's{" "}
             <code className="bg-surfaceHover px-1.5 py-0.5 rounded text-white">
-              /webhooks/uber-eats
+              /webhooks
             </code>{" "}
             path and view them live.
           </li>

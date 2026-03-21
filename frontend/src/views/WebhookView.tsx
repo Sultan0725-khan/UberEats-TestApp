@@ -88,7 +88,7 @@ export const WebhookView = () => {
               Configure Webhook URL in Uber Dashboard to point to your
               Cloudflare tunnel's{" "}
               <code className="bg-surfaceHover px-2 py-1 rounded">
-                /webhooks/uber-eats
+                /webhooks
               </code>{" "}
               path
             </p>

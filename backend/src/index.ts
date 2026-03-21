@@ -49,7 +49,7 @@ app.get("/api/webhooks/self-test", (req, res) => {
       : "UBER_CLIENT_SECRET",
     rawBodyEnabled: true,
     message:
-      "Webhook handler is active and raw-body parsing is enabled for /webhooks/uber-eats",
+      "Webhook handler is active and raw-body parsing is enabled for /webhooks",
   });
 });
 
