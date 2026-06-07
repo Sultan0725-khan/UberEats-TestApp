@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { Info } from "lucide-react";
 import { EndpointPanel } from "../components/EndpointPanel";
 import api from "../lib/api";
 
@@ -43,6 +44,26 @@ export const AuthView = () => {
         </h1>
         <p className="text-textMuted mt-1">
           Generate Developer OAuth tokens for the Uber API.
+        </p>
+      </div>
+
+      <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-start gap-3">
+        <Info className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+        <p className="text-sm text-blue-200 leading-relaxed">
+          This request is proxied through the local backend server at{" "}
+          <code className="bg-primary/10 px-1.5 py-0.5 rounded text-white text-xs">
+            {import.meta.env.VITE_API_URL || "http://localhost:3000"}
+          </code>
+          . The backend reads your{" "}
+          <code className="bg-primary/10 px-1.5 py-0.5 rounded text-white text-xs">
+            UBER_CLIENT_ID
+          </code>{" "}
+          and{" "}
+          <code className="bg-primary/10 px-1.5 py-0.5 rounded text-white text-xs">
+            UBER_CLIENT_SECRET
+          </code>{" "}
+          from its <code className="bg-primary/10 px-1.5 py-0.5 rounded text-white text-xs">.env</code> file and exchanges them for a token.
+          If you see a network error, make sure the backend is running.
         </p>
       </div>
 
