@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: ubereats-sandbox-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: UBER_CLIENT_ID
+        sync: false
+      - key: UBER_CLIENT_SECRET
+        sync: false
+      - key: UBER_BASE_URL
+        value: https://test-api.uber.com
+      - key: UBER_AUTH_URL
+        value: https://sandbox-login.uber.com/oauth/v2/token
+      - key: UBER_WEBHOOK_SECRET
+        sync: false
