@@ -44,27 +44,27 @@ export const OrdersView = () => {
           </p>
         </div>
 
-        <div className="flex flex-col gap-2 bg-surface p-3 rounded-xl border border-border">
-          <div className="flex items-center justify-between gap-4">
-            <label className="text-xs text-textMuted font-medium uppercase tracking-wider w-20">
+        <div className="flex flex-col gap-2 bg-surface p-3 rounded-xl border border-border w-full md:w-auto">
+          <div className="flex items-center gap-3">
+            <label className="text-xs text-textMuted font-medium uppercase tracking-wider w-16 shrink-0">
               Store ID
             </label>
             <input
               type="text"
               value={storeId}
               onChange={(e) => setStoreId(e.target.value)}
-              className="bg-[#1e1e1e] border border-border text-white text-sm rounded px-3 py-1.5 w-72 focus:outline-none focus:border-primary"
+              className="bg-[#1e1e1e] border border-border text-white text-sm rounded px-3 py-1.5 flex-1 min-w-0 focus:outline-none focus:border-primary"
             />
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <label className="text-xs text-textMuted font-medium uppercase tracking-wider w-20">
+          <div className="flex items-center gap-3">
+            <label className="text-xs text-textMuted font-medium uppercase tracking-wider w-16 shrink-0">
               Order ID
             </label>
             <input
               type="text"
               value={orderId}
               onChange={(e) => setOrderId(e.target.value)}
-              className="bg-[#1e1e1e] border border-border text-white text-sm rounded px-3 py-1.5 w-72 focus:outline-none focus:border-primary font-mono text-primary"
+              className="bg-[#1e1e1e] border border-border text-white text-sm rounded px-3 py-1.5 flex-1 min-w-0 focus:outline-none focus:border-primary font-mono text-primary"
             />
           </div>
         </div>

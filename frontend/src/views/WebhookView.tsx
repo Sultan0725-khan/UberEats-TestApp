@@ -61,7 +61,7 @@ export const WebhookView = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
             <Webhook className="text-primary w-6 h-6" />
@@ -71,7 +71,7 @@ export const WebhookView = () => {
             Live feed of incoming Uber Eats Webhooks.
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 flex-wrap">
           <label className="flex items-center gap-2 text-sm text-textMuted cursor-pointer">
             <input
               type="checkbox"
@@ -84,7 +84,7 @@ export const WebhookView = () => {
           <button
             onClick={fetchEvents}
             disabled={loading}
-            className="p-2 ml-2 bg-surface hover:bg-surfaceHover border border-border rounded-lg text-textMuted hover:text-white transition-colors disabled:opacity-50"
+            className="p-2 bg-surface hover:bg-surfaceHover border border-border rounded-lg text-textMuted hover:text-white transition-colors disabled:opacity-50"
           >
             <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
           </button>
@@ -128,8 +128,8 @@ export const WebhookView = () => {
                   key={evt.event_id || idx}
                   className="p-4 hover:bg-surfaceHover/50 transition-colors"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span
                         className={cn(
                           "px-2.5 py-1 rounded text-xs font-bold border",
@@ -140,11 +140,11 @@ export const WebhookView = () => {
                       >
                         {evt.event_type}
                       </span>
-                      <span className="text-xs text-textMuted font-mono bg-[#1e1e1e] px-2 py-1 rounded border border-border">
+                      <span className="text-xs text-textMuted font-mono bg-[#1e1e1e] px-2 py-1 rounded border border-border truncate max-w-[180px]">
                         ID: {evt.event_id}
                       </span>
                     </div>
-                    <span className="text-xs text-textMuted flex items-center gap-1.5">
+                    <span className="text-xs text-textMuted flex items-center gap-1.5 shrink-0">
                       <Clock className="w-3 h-3" />
                       {date.toLocaleTimeString()} - {date.toLocaleDateString()}
                     </span>
