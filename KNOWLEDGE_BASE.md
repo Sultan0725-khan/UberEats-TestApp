@@ -466,6 +466,7 @@ Backend lädt `.env` aus dem **Arbeitsverzeichnis** (`dotenv.config()`) → `npm
 | `PORT`                           | –       | `3000`                                          | index.ts                       | Backend-Port                           |
 | `STORE_ID_1/2`, `STORE_NAME_1/2` | –       | –                                               | **nirgends im Code**           | Nur Doku/Referenz                      |
 | `UBER_WEBHOOK_URL`               | –       | –                                               | **nirgends im Code**           | Nur Doku/Referenz                      |
+| `FORWARD_WEBHOOK_URL`            | –       | –                                               | webhooks.ts (Relay)            | Optional: leitet jeden geprüften Webhook unverändert (Raw Body + `X-Uber-Signature*`) per POST an die B2B-Core weiter, z. B. `https://<core-tunnel>/api/v1/public/delivery/uber/webhook` (B2B-040). Uber kennt nur **eine** Delivery-URL pro App; die Test-App bleibt davor, Core prüft die Signatur erneut. Fire-and-forget, verzögert die Antwort an Uber nicht |
 
 ### 9.3 Starten
 
